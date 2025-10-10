@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'Admin_Dashboard.dart';
 import 'SignUp.dart';
 
 // --- A professional and modern color palette ---
@@ -43,7 +44,10 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
       if (mounted) {
-        // TODO: Implement Navigation
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) =>  const AdminDashboard()),
+        );
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
