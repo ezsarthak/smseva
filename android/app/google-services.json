@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "726595998750",
+    "project_id": "suvidha-admin-90b3c",
+    "storage_bucket": "suvidha-admin-90b3c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:726595998750:android:c39537194a84a747f20a0f",
+        "android_client_info": {
+          "package_name": "com.example.cdgi_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyOJpZejIYSfai4DJ1GAVjjm6bihuRaAE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:726595998750:android:a8f05c98f0e1a64bf20a0f",
+        "android_client_info": {
+          "package_name": "com.example.suvidha_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyOJpZejIYSfai4DJ1GAVjjm6bihuRaAE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

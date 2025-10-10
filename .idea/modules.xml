@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Suvidha_Admin.iml" filepath="$PROJECT_DIR$/.idea/Suvidha_Admin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/suvidha_admin.iml" filepath="$PROJECT_DIR$/suvidha_admin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/suvidha_admin_android.iml" filepath="$PROJECT_DIR$/android/suvidha_admin_android.iml" />
     </modules>
   </component>
 </project>
