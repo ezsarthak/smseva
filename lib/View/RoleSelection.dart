@@ -88,11 +88,11 @@ class RoleSelectionScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(
-            Icons.location_city,
-            size: 64,
-            color: Colors.white,
-          ),
+          child: SizedBox(
+            height: 100,
+              width: 100,
+              child: Image.asset("assets/Suvidhalogo.png")
+          )
         ),
         const SizedBox(height: 24),
         const Text(

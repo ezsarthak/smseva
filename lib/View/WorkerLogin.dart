@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:suvidha_admin/View/worker_dashboard.dart';
+import '../Services/api_service.dart';
 import '../Widgets/Auth_Back.dart';
 import '../Widgets/Auth_FormCard.dart';
 import '../Widgets/Auth_Header.dart';
@@ -36,15 +38,18 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
 
     setState(() => _loading = true);
     try {
-      final success = await Future.delayed(Duration(seconds: 1));
+      final success = await ApiService.workerLogin(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
 
       if (success && mounted) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('worker_email', _emailController.text.trim());
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => const WorkerDashboard()),
-        // );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const WorkerDashboard()),
+        );
       }
     } catch (e) {
       if (mounted) {

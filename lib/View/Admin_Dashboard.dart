@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:suvidha_admin/View/worker_assignment.dart';
 import '../Model/Issues.dart';
+import '../Services/api_service.dart';
 import '../widgets/issue_card.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/stats_overview.dart';
 import '../widgets/loading_shimmer.dart';
-import 'WorkerAssignment.dart';
 class AdminDashboard extends StatefulWidget {
   @override
   _AdminDashboardState createState() => _AdminDashboardState();
@@ -63,7 +64,8 @@ class _AdminDashboardState extends State<AdminDashboard>
 
     try {
       final [issuesData, categoriesData] = await Future.wait([
-
+        ApiService.getIssues(),
+        ApiService.getCategories(),
       ]);
 
       await Future.delayed(const Duration(milliseconds: 500));
@@ -83,6 +85,7 @@ class _AdminDashboardState extends State<AdminDashboard>
       _showErrorSnackBar('Error loading data: $e');
     }
   }
+
 
   void _applyFiltersAndSort() {
     _filterController.forward().then((_) => _filterController.reset());
@@ -151,7 +154,10 @@ class _AdminDashboardState extends State<AdminDashboard>
   }
 
   Future<void> _updateIssueStatus(Issue issue, String newStatus) async {
-    final success = await Future.delayed(Duration(seconds: 1));
+    final success = await ApiService.updateIssueStatus(
+      issue.ticketId,
+      newStatus,
+    );
     if (success) {
       setState(() {
         final index = issues.indexWhere((i) => i.ticketId == issue.ticketId);

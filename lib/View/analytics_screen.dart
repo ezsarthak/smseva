@@ -59,13 +59,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     });
 
     try {
-      // NOTE: Replace this with your actual API call.
-      // final response = await http.get(Uri.parse('YOUR_API_ENDPOINT_HERE'));
-      final response = await Future.delayed(const Duration(seconds: 1), () {
-        // This is mock data. Replace with your actual API call logic.
-        return http.Response('[]', 200); // Assuming success with empty list for now
-      });
-
+      final response = await http.get(
+        Uri.parse('https://suvidha-backend-gdf7.onrender.com/issues'),
+        headers: {'Content-Type': 'application/json'},
+      );
 
       if (mounted) {
         if (response.statusCode == 200) {

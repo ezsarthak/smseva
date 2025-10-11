@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:uuid/uuid.dart';
 import '../Model/Worker.dart';
+import '../Services/api_service.dart';
 import '../Widgets/Auth_FormCard.dart';
 import '../Widgets/Auth_Header.dart';
 import '../Widgets/primary button.dart';
@@ -25,8 +26,8 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
   final _experienceController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  String? _selectedDepartmentId;
-  List<Department> _departments = [];
+  String? _selectedDepartment;
+  List<Map<String, dynamic>> _departments = [];
   bool _loading = false;
   bool _obscurePassword = true;
 
@@ -49,22 +50,45 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
 
   Future<void> _loadDepartments() async {
     try {
-      final departments = await Future.delayed(Duration(seconds: 1));
-      if (mounted) {
-        setState(() => _departments = departments);
-      }
-    } catch (e) {
+      final departments = await ApiService.getDepartments();
+      setState(() {
+        _departments = departments.map((dept) {
+          // Assuming your Department model has 'id' and 'name' properties.
+          // The keys '_id' and 'name' must match what the DropdownButtonFormField expects.
+          return {'_id': dept.id, 'name': dept.name};
+        }).toList();
+      });
+    }catch (e) {
       // Handle error, maybe show a snackbar
+      setState(() {
+        _departments = [
+          {'_id': '1', 'name': 'Electricity Department'},
+          {'_id': '2', 'name': 'Water Supply Department'},
+          {'_id': '3', 'name': 'Road Maintenance Department'},
+          {'_id': '4', 'name': 'Sanitation Department'},
+        ];
+      });
       print('Failed to load departments: $e');
     }
   }
 
   Future<void> _signUp() async {
+    if (_selectedDepartment == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please select a department.'),
+          backgroundColor: Colors.red.shade600,
+        ),
+      );
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
 
-    var uuid = const Uuid();
+    // ✅ Generate a unique employee ID here
+    var uuid = Uuid();
     String employeeId = 'EMP-${DateTime.now().millisecondsSinceEpoch}-${uuid.v4().substring(0, 8)}';
 
     final workerData = {
@@ -72,32 +96,37 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
       'email': _emailController.text.trim(),
       'phone': _phoneController.text.trim(),
       'password': _passwordController.text.trim(),
-      'department_id': _selectedDepartmentId,
+      'department_id': _selectedDepartment, // Ensure this is not null
       'skills': [_specializationController.text.trim()],
-      'employee_id': employeeId,
+      'employee_id': employeeId, // ✅ Add the generated ID to the map
     };
+    print('--- VERIFYING DATA BEFORE SENDING ---');
+    print(workerData);
+    print('------------------------------------');
 
     try {
-      final success = await Future.delayed(Duration(seconds: 1));
+      final success = await ApiService.registerWorker(workerData);
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Registration successful! Please wait for admin approval.'),
-            backgroundColor: kWorkerPrimaryColor,
+            backgroundColor: Color(0xFF059669), // kWorkerPrimaryColor
           ),
         );
         Navigator.pop(context);
       } else if (mounted) {
+        // This handles the case where the API returns a failure (e.g., 400 status)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Registration failed. Please check details.'),
+            content: const Text('Registration failed. Please check the details and try again.'),
             backgroundColor: Colors.red.shade600,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        // This handles network errors or specific errors thrown from the API service
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('An error occurred: $e'),
@@ -111,7 +140,6 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
       }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -219,17 +247,21 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
 
   Widget _buildDepartmentDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedDepartmentId,
+      initialValue: _selectedDepartment,
       decoration: _inputDecoration('Department', Icons.business_outlined),
       items: _departments.map((dept) {
         return DropdownMenuItem<String>(
-          value: dept.id,
-          child: Text(dept.name),
+          value: dept['_id'],
+          child: Text(dept['name']),
         );
       }).toList(),
-      onChanged: (value) => setState(() => _selectedDepartmentId = value),
-      validator: (value) => value == null ? 'Please select a department.' : null,
-      hint: const Text('Select Department'),
+      onChanged: (value) => setState(() => _selectedDepartment = value),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please select a department.';
+        }
+        return null;
+      },
     );
   }
 

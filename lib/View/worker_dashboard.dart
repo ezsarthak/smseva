@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Model/Worker.dart';
 import '../Model/assignments.dart';
+import '../Services/api_service.dart';
+
 class WorkerDashboard extends StatefulWidget {
   const WorkerDashboard({super.key});
 
@@ -33,7 +35,8 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
 
       // Fetch profile and assignments at the same time
       final results = await Future.wait([
-      Future.delayed(Duration(seconds: 1)),
+        ApiService.getWorkerProfile(workerEmail),
+        ApiService.getWorkerAssignments(workerEmail),
       ]);
 
       setState(() {
@@ -54,7 +57,10 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
   Future<void> _markWorkAsCompleted(Assignment assignment) async {
     try {
       // Corrected the function name here
-      final success = await Future.delayed(Duration(seconds: 1));
+      final success = await ApiService.updateAssignmentStatusWorker(
+        ticketId: assignment.ticketId,
+        status: 'worker_completed',
+      );
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -5,6 +5,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../Model/Issues.dart';
 import '../Model/Worker.dart';
 import '../Model/assignments.dart';
+import '../Services/api_service.dart';
 
 
 class WorkerAssignmentScreen extends StatefulWidget {
@@ -44,7 +45,10 @@ class _WorkerAssignmentScreenState extends State<WorkerAssignmentScreen>
     setState(() => _isLoading = true);
     try {
       final results = await Future.wait([
-      Future.delayed(Duration(seconds: 1))
+        ApiService.getIssues(),
+        ApiService.getWorkers(),
+        ApiService.getDepartments(),
+        ApiService.getAssignments(),
       ]);
 
       final allIssues = results[0] as List<Issue>;
@@ -100,7 +104,11 @@ class _WorkerAssignmentScreenState extends State<WorkerAssignmentScreen>
 
   Future<void> _assignWorker(Issue issue, Worker worker, String notes) async {
     try {
-      final success = await Future.delayed(Duration(seconds: 1));
+      final success = await ApiService.assignWorker(
+        ticketId: issue.ticketId,
+        workerEmail: worker.email,
+        notes: notes,
+      );
 
       if (success) {
         await _loadData(); // Refresh data
@@ -115,7 +123,11 @@ class _WorkerAssignmentScreenState extends State<WorkerAssignmentScreen>
 
   Future<void> _reassignWorker(Assignment assignment, Worker newWorker) async {
     try {
-      final success = await Future.delayed(Duration(seconds: 1));
+      final success = await ApiService.reassignWorker(
+        assignmentId: assignment.id,
+        newWorkerEmail: newWorker.email,
+      );
+
       if (success) {
         await _loadData(); // Refresh data
         _showSuccessSnackBar('Worker reassigned successfully!');
