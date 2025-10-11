@@ -3,9 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'Admin_Dashboard.dart';
 import 'Login.dart';
-// import 'login_screen.dart'; // Import your login screen here
 
-// --- A professional and modern color palette ---
 const Color kPrimaryColor = Color(0xFF34558B);
 const Color kBackgroundColor = Color(0xFFF8F9FA);
 const Color kTextColor = Color(0xFF212529);

@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
+
 class Location {
   final double longitude;
   final double latitude;
@@ -10,4 +14,23 @@ class Location {
       latitude: (json['latitude'] ?? 0.0).toDouble(),
     );
   }
+}
+class StatData {
+  final String title;
+  final String value;
+  final Color color;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool isActive;
+  final String subtitle;
+
+  StatData(
+      this.title,
+      this.value,
+      this.color,
+      this.icon, {
+        required this.onTap,
+        this.isActive = false,
+        required this.subtitle,
+      });
 }
