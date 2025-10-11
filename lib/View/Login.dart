@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) =>  const AdminDashboard()),
+          MaterialPageRoute(builder: (_) =>   AdminDashboard()),
         );
       }
     } on FirebaseAuthException catch (e) {
