@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../Widgets/Auth_Back.dart';
+import '../Widgets/Auth_FormCard.dart';
+import '../Widgets/Auth_Header.dart';
+import '../Widgets/primary button.dart';
+import '../constants/AppColors.dart';
 import 'WorkerSignUp.dart';
-
-const Color kWorkerPrimaryColor = Color(0xFF059669);
-const Color kBackgroundColor = Color(0xFFF8F9FA);
-const Color kTextColor = Color(0xFF212529);
-const Color kHintTextColor = Color(0xFF6C757D);
+// You might need a placeholder for WorkerDashboard
+// import 'package:your_app/screens/worker_dashboard.dart';
 
 class WorkerLoginScreen extends StatefulWidget {
   const WorkerLoginScreen({super.key});
@@ -18,6 +20,7 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
   bool _loading = false;
   bool _obscurePassword = true;
 
@@ -28,16 +31,34 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
     super.dispose();
   }
 
-  void _login() async {
+  Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
 
-    await Future.delayed(const Duration(seconds: 1)); // fake delay for demo
-    if (mounted) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login successful (UI only demo)')),
-      );
+    setState(() => _loading = true);
+    try {
+      final success = await Future.delayed(Duration(seconds: 1));
+
+      if (success && mounted) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('worker_email', _emailController.text.trim());
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (_) => const WorkerDashboard()),
+        // );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: $e'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -47,21 +68,48 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
       backgroundColor: kBackgroundColor,
       body: Stack(
         children: [
-          _buildBackgroundShapes(),
+          const AuthBackground(),
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 400),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildHeader(),
+                      const AuthHeader(
+                        icon: Icons.engineering_outlined,
+                        title: 'Worker Portal',
+                        subtitle: 'Log in to manage your assigned tasks.',
+                      ),
                       const SizedBox(height: 32),
-                      _buildFormCard(),
+                      AuthFormCard(
+                        child: Column(
+                          children: [
+                            Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _buildEmailField(),
+                                  const SizedBox(height: 20),
+                                  _buildPasswordField(),
+                                  const SizedBox(height: 24),
+                                  PrimaryButton(
+                                    text: 'Log In',
+                                    isLoading: _loading,
+                                    onPressed: _login,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            _buildSignUpLink(),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -71,96 +119,6 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildBackgroundShapes() {
-    return Stack(
-      children: [
-        Positioned(
-          top: -100,
-          left: -100,
-          child: Container(
-            width: 250,
-            height: 250,
-            decoration: BoxDecoration(
-              color: kWorkerPrimaryColor.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: -150,
-          right: -100,
-          child: Container(
-            width: 350,
-            height: 350,
-            decoration: BoxDecoration(
-              color: kWorkerPrimaryColor.withOpacity(0.05),
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        Icon(Icons.engineering_outlined, size: 64, color: kWorkerPrimaryColor),
-        const SizedBox(height: 16),
-        const Text(
-          'Worker Portal',
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: kTextColor,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Log in to manage your assigned tasks.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: kHintTextColor),
-        ),
-      ],
-    ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.2, curve: Curves.easeOut);
-  }
-
-  Widget _buildFormCard() {
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildEmailField(),
-                const SizedBox(height: 20),
-                _buildPasswordField(),
-                const SizedBox(height: 24),
-                _buildLoginButton(),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSignUpLink(),
-        ],
-      ),
-    ).animate().fadeIn(delay: 200.ms, duration: 500.ms).slideY(begin: 0.2, curve: Curves.easeOut);
   }
 
   Widget _buildEmailField() {
@@ -184,43 +142,18 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
       decoration: _inputDecoration('Password', Icons.lock_outline).copyWith(
         suffixIcon: IconButton(
           icon: Icon(
-            _obscurePassword
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
+            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
             color: kHintTextColor,
           ),
-          onPressed: () =>
-              setState(() => _obscurePassword = !_obscurePassword),
+          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
         ),
       ),
-      validator: (value) =>
-      value == null || value.isEmpty ? 'Please enter your password.' : null,
-    );
-  }
-
-  Widget _buildLoginButton() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        backgroundColor: kWorkerPrimaryColor,
-        foregroundColor: Colors.white,
-        elevation: 5,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      onPressed: _loading ? null : _login,
-      child: _loading
-          ? const SizedBox(
-        height: 24,
-        width: 24,
-        child: CircularProgressIndicator(
-          strokeWidth: 3,
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-        ),
-      )
-          : const Text(
-        'Log In',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your password.';
+        }
+        return null;
+      },
     );
   }
 
@@ -228,8 +161,7 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text("Don't have an account?",
-            style: TextStyle(color: kHintTextColor)),
+        const Text("Don't have an account?", style: TextStyle(color: kHintTextColor)),
         TextButton(
           onPressed: () {
             Navigator.push(
@@ -240,7 +172,9 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
           child: const Text(
             'Sign Up',
             style: TextStyle(
-                fontWeight: FontWeight.bold, color: kWorkerPrimaryColor),
+              fontWeight: FontWeight.bold,
+              color: kWorkerPrimaryColor,
+            ),
           ),
         ),
       ],
@@ -254,8 +188,7 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
       prefixIcon: Icon(icon, color: kHintTextColor),
       filled: true,
       fillColor: kBackgroundColor,
-      contentPadding:
-      const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -266,8 +199,7 @@ class _WorkerLoginScreenState extends State<WorkerLoginScreen> {
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-        BorderSide(color: Colors.red.shade400, width: 1.5),
+        borderSide: BorderSide(color: Colors.red.shade400, width: 1.5),
       ),
     );
   }

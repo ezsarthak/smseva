@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:uuid/uuid.dart';
+import '../Model/Worker.dart';
+import '../Widgets/Auth_FormCard.dart';
+import '../Widgets/Auth_Header.dart';
+import '../Widgets/primary button.dart';
+import '../constants/AppColors.dart';
 
-import 'Login.dart';
-import 'WorkerLogin.dart' hide kTextColor, kHintTextColor, kBackgroundColor;
+
 
 class WorkerSignupScreen extends StatefulWidget {
   const WorkerSignupScreen({super.key});
@@ -19,27 +24,91 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
   final _specializationController = TextEditingController();
   final _experienceController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String? _selectedDepartment;
+
+  String? _selectedDepartmentId;
+  List<Department> _departments = [];
   bool _loading = false;
   bool _obscurePassword = true;
 
-  final _departments = const [
-    {'_id': '1', 'name': 'Electricity Department'},
-    {'_id': '2', 'name': 'Water Supply Department'},
-    {'_id': '3', 'name': 'Road Maintenance Department'},
-    {'_id': '4', 'name': 'Sanitation Department'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadDepartments();
+  }
 
-  void _signUp() async {
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _specializationController.dispose();
+    _experienceController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadDepartments() async {
+    try {
+      final departments = await Future.delayed(Duration(seconds: 1));
+      if (mounted) {
+        setState(() => _departments = departments);
+      }
+    } catch (e) {
+      // Handle error, maybe show a snackbar
+      print('Failed to load departments: $e');
+    }
+  }
+
+  Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registered successfully (UI only demo)')),
-      );
-      Navigator.pop(context);
+
+    var uuid = const Uuid();
+    String employeeId = 'EMP-${DateTime.now().millisecondsSinceEpoch}-${uuid.v4().substring(0, 8)}';
+
+    final workerData = {
+      'name': _nameController.text.trim(),
+      'email': _emailController.text.trim(),
+      'phone': _phoneController.text.trim(),
+      'password': _passwordController.text.trim(),
+      'department_id': _selectedDepartmentId,
+      'skills': [_specializationController.text.trim()],
+      'employee_id': employeeId,
+    };
+
+    try {
+      final success = await Future.delayed(Duration(seconds: 1));
+
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registration successful! Please wait for admin approval.'),
+            backgroundColor: kWorkerPrimaryColor,
+          ),
+        );
+        Navigator.pop(context);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Registration failed. Please check details.'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: $e'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -48,7 +117,7 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
     return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: AppBar(
-        title: const Text('Worker Registration'),
+        title: const Text('Worker Registration', style: TextStyle(color: kTextColor)),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -58,95 +127,68 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 32),
-                _buildForm(),
-              ],
-            ).animate().fadeIn(duration: 400.ms, curve: Curves.easeOut),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const AuthHeader(
+                    icon: Icons.person_add_alt_1_outlined,
+                    title: 'Join Our Team',
+                    subtitle: 'Fill in your details to register as a worker.',
+                  ),
+                  const SizedBox(height: 32),
+                  AuthFormCard(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildTextField(_nameController, 'Full Name', Icons.person_outline),
+                          const SizedBox(height: 20),
+                          _buildTextField(_emailController, 'Email Address', Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+                          const SizedBox(height: 20),
+                          _buildTextField(_phoneController, 'Phone Number', Icons.phone_outlined, keyboardType: TextInputType.phone),
+                          const SizedBox(height: 20),
+                          _buildPasswordField(),
+                          const SizedBox(height: 20),
+                          _buildDepartmentDropdown(),
+                          const SizedBox(height: 20),
+                          _buildTextField(_specializationController, 'Specialization (e.g., Plumbing)', Icons.work_outline),
+                          const SizedBox(height: 20),
+                          _buildTextField(_experienceController, 'Years of Experience', Icons.timeline_outlined, keyboardType: TextInputType.number),
+                          const SizedBox(height: 30),
+                          PrimaryButton(
+                            text: 'Register',
+                            isLoading: _loading,
+                            onPressed: _signUp,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ).animate().fadeIn(duration: 400.ms, curve: Curves.easeOut),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        const Icon(Icons.person_add_outlined, size: 64, color: kWorkerPrimaryColor),
-        const SizedBox(height: 16),
-        Text(
-          'Join Our Team',
-          style: TextStyle(
-              fontSize: 26, fontWeight: FontWeight.bold, color: kTextColor),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Fill in your details to register as a worker.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: kHintTextColor),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildForm() {
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 10)),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            _buildTextField(_nameController, 'Full Name', Icons.person_outline),
-            const SizedBox(height: 20),
-            _buildTextField(_emailController, 'Email Address', Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress),
-            const SizedBox(height: 20),
-            _buildTextField(_phoneController, 'Phone Number', Icons.phone_outlined,
-                keyboardType: TextInputType.phone),
-            const SizedBox(height: 20),
-            _buildPasswordField(),
-            const SizedBox(height: 20),
-            _buildDepartmentDropdown(),
-            const SizedBox(height: 20),
-            _buildTextField(_specializationController, 'Specialization', Icons.work_outline),
-            const SizedBox(height: 20),
-            _buildTextField(_experienceController, 'Years of Experience',
-                Icons.timeline_outlined,
-                keyboardType: TextInputType.number),
-            const SizedBox(height: 30),
-            _buildSignUpButton(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon,
-      {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType keyboardType = TextInputType.text}) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       decoration: _inputDecoration(label, icon),
       validator: (value) {
-        if (value == null || value.trim().isEmpty) return 'Please enter $label.';
+        if (value == null || value.trim().isEmpty) {
+          return 'Please enter your $label.';
+        }
         if (label == 'Email Address' && !RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-          return 'Enter a valid email address.';
+          return 'Please enter a valid email address.';
         }
         return null;
       },
@@ -160,9 +202,7 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
       decoration: _inputDecoration('Password', Icons.lock_outline).copyWith(
         suffixIcon: IconButton(
           icon: Icon(
-            _obscurePassword
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
+            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
             color: kHintTextColor,
           ),
           onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -179,45 +219,17 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
 
   Widget _buildDepartmentDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedDepartment,
+      value: _selectedDepartmentId,
       decoration: _inputDecoration('Department', Icons.business_outlined),
-      items: _departments
-          .map((dept) => DropdownMenuItem(
-        value: dept['_id'],
-        child: Text(dept['name']!),
-      ))
-          .toList(),
-      onChanged: (value) => setState(() => _selectedDepartment = value),
-      validator: (value) => value == null ? 'Select a department.' : null,
-    );
-  }
-
-  Widget _buildSignUpButton() {
-    return SizedBox(
-      width: 500,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: kWorkerPrimaryColor,
-          foregroundColor: Colors.white,
-          elevation: 5,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        onPressed: _loading ? null : _signUp,
-        child: _loading
-            ? const SizedBox(
-          height: 24,
-          width: 24,
-          child: CircularProgressIndicator(
-            strokeWidth: 3,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-          ),
-        )
-            : const Text(
-          'Register',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-      ),
+      items: _departments.map((dept) {
+        return DropdownMenuItem<String>(
+          value: dept.id,
+          child: Text(dept.name),
+        );
+      }).toList(),
+      onChanged: (value) => setState(() => _selectedDepartmentId = value),
+      validator: (value) => value == null ? 'Please select a department.' : null,
+      hint: const Text('Select Department'),
     );
   }
 
@@ -228,8 +240,7 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
       prefixIcon: Icon(icon, color: kHintTextColor),
       filled: true,
       fillColor: kBackgroundColor,
-      contentPadding:
-      const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -240,8 +251,7 @@ class _WorkerSignupScreenState extends State<WorkerSignupScreen> {
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-        BorderSide(color: Colors.red.shade400, width: 1.5),
+        borderSide: BorderSide(color: Colors.red.shade400, width: 1.5),
       ),
     );
   }
