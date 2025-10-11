@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../Model/Issues.dart';
+import '../View/analytics_screen.dart' hide Issue;
 
 
 class StatsOverview extends StatelessWidget {
@@ -89,7 +90,10 @@ class StatsOverview extends StatelessWidget {
         const Color(0xFF4C6EF5),
         Icons.bar_chart_rounded,
         onTap: () {
-          //TODO : Navigate to Analaytics Page
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AnalyticsScreen()),
+          );
         },
         isActive: false,
         subtitle: 'View detailed insights',
