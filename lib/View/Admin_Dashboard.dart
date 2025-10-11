@@ -6,7 +6,7 @@ import '../widgets/issue_card.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/stats_overview.dart';
 import '../widgets/loading_shimmer.dart';
-
+import 'WorkerAssignment.dart';
 class AdminDashboard extends StatefulWidget {
   @override
   _AdminDashboardState createState() => _AdminDashboardState();
@@ -61,86 +61,27 @@ class _AdminDashboardState extends State<AdminDashboard>
     setState(() => isLoading = true);
     _refreshController.forward();
 
-    await Future.delayed(const Duration(seconds: 1)); // simulate loading
+    try {
+      final [issuesData, categoriesData] = await Future.wait([
 
-    // 🟢 Dummy data (no API calls)
-    issues = [
-      Issue(
-        ticketId: 'T001',
-        category: 'Plumbing',
-        address: 'Sector 7, MG Road',
-        location: Location(longitude: 77.69, latitude: 28.98),
-        description: 'Broken water pipe causing leakage.',
-        title: 'Water Leakage',
-        status: 'new',
-        createdAt: '2025-10-01',
-        inProgressAt: '',
-        completedAt: '',
-        photo: null,
-        users: ['user1'],
-        issueCount: 4,
-        updatedBy: 'admin@suvidha.com',
-        originalText: 'Pipe broken at MG Road.',
-        admin_completed_at: '',
-        user_completed_at: '',
-        admin_completed_by: '',
-        user_completed_by: '',
-      ),
-      Issue(
-        ticketId: 'T002',
-        category: 'Electrical',
-        address: 'Sector 3, Indira Nagar',
-        location: Location(longitude: 77.71, latitude: 28.97),
-        description: 'Street lights not working.',
-        title: 'Street Light Fault',
-        status: 'in_progress',
-        createdAt: '2025-09-29',
-        inProgressAt: '',
-        completedAt: '',
-        photo: null,
-        users: ['user2'],
-        issueCount: 9,
-        updatedBy: 'worker@suvidha.com',
-        originalText: 'Electric pole 13 lights off.',
-        admin_completed_at: '',
-        user_completed_at: '',
-        admin_completed_by: '',
-        user_completed_by: '',
-      ),
-      Issue(
-        ticketId: 'T003',
-        category: 'Cleaning',
-        address: 'Rajiv Chowk, Delhi',
-        location: Location(longitude: 77.21, latitude: 28.63),
-        description: 'Garbage not collected for two days.',
-        title: 'Garbage Overflow',
-        status: 'completed',
-        createdAt: '2025-09-25',
-        inProgressAt: '',
-        completedAt: '',
-        photo: null,
-        users: ['user3'],
-        issueCount: 12,
-        updatedBy: 'admin@suvidha.com',
-        originalText: 'Overflowing garbage near metro.',
-        admin_completed_at: '',
-        user_completed_at: '',
-        admin_completed_by: '',
-        user_completed_by: '',
-      ),
-    ];
+      ]);
 
-    categories = ['Water', 'Electricity', 'Roads', 'Waste Management'];
+      await Future.delayed(const Duration(milliseconds: 500));
 
-    await Future.delayed(const Duration(milliseconds: 300));
+      setState(() {
+        issues = issuesData as List<Issue>;
+        categories = categoriesData as List<String>;
+        filteredIssues = List.from(issues);
+        isLoading = false;
+      });
 
-    setState(() {
-      filteredIssues = List.from(issues);
-      isLoading = false;
-    });
-
-    _applyFiltersAndSort();
-    _refreshController.reset();
+      _applyFiltersAndSort();
+      _refreshController.reset();
+    } catch (e) {
+      setState(() => isLoading = false);
+      _refreshController.reset();
+      _showErrorSnackBar('Error loading data: $e');
+    }
   }
 
   void _applyFiltersAndSort() {
@@ -210,27 +151,60 @@ class _AdminDashboardState extends State<AdminDashboard>
   }
 
   Future<void> _updateIssueStatus(Issue issue, String newStatus) async {
-    // 🟢 No API — just update locally
-    setState(() {
-      final index = issues.indexWhere((i) => i.ticketId == issue.ticketId);
-      if (index != -1) {
-        issues[index] = issue.copyWith(status: newStatus);
-      }
-    });
-    _applyFiltersAndSort();
-    _showSuccessSnackBar('Issue status updated locally');
+    final success = await Future.delayed(Duration(seconds: 1));
+    if (success) {
+      setState(() {
+        final index = issues.indexWhere((i) => i.ticketId == issue.ticketId);
+        if (index != -1) {
+          issues[index] = issue.copyWith(status: newStatus);
+        }
+      });
+      _applyFiltersAndSort();
+      _showSuccessSnackBar('Issue status updated successfully');
+    } else {
+      _showErrorSnackBar('Failed to update issue status');
+    }
   }
 
   void _showFilterSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.filter_alt_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 1),
+        elevation: 8,
       ),
     );
   }
@@ -238,7 +212,20 @@ class _AdminDashboardState extends State<AdminDashboard>
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.error_outline, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
         backgroundColor: const Color(0xFFFF416C),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -251,7 +238,20 @@ class _AdminDashboardState extends State<AdminDashboard>
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.check_circle_outline, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
         backgroundColor: const Color(0xFF56AB2F),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -286,34 +286,93 @@ class _AdminDashboardState extends State<AdminDashboard>
             padding: const EdgeInsets.all(25),
             decoration: BoxDecoration(
               image: const DecorationImage(
-                image: AssetImage("assets/Suvidhalogo.png"),
+                  image: AssetImage("assets/Suvidhalogo.png")
               ),
               borderRadius: BorderRadius.circular(16),
             ),
           ),
           const SizedBox(width: 20),
-          const Text(
-            'SUVIDHA Admin Portal',
-            style: TextStyle(
-              letterSpacing: 1,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A1A1A),
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'SUVIDHA Admin Portal',
+                style: TextStyle(
+                  letterSpacing: 1,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              Text(
+                'जन सुविधा एवं शिकायत निवारण',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ],
       ),
       actions: [
+        // Worker Assignment Button - NEW
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF059669), Color(0xFF047857)],
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF059669).withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.engineering_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const WorkerAssignmentScreen()
+                ),
+              );
+            },
+            tooltip: 'Worker Assignment',
+            style: IconButton.styleFrom(
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ),
+        // Existing refresh button
         AnimatedBuilder(
           animation: _refreshAnimation,
           builder: (context, child) {
             return Transform.rotate(
               angle: _refreshAnimation.value * 2 * 3.14159,
-              child: IconButton(
-                icon: const Icon(Icons.refresh_rounded),
-                onPressed: isLoading ? null : loadData,
-                tooltip: 'Refresh Data',
-                color: const Color(0xFF667EEA),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF667EEA).withValues(alpha: 0.1),
+                      const Color(0xFF764BA2).withValues(alpha: 0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.refresh_rounded),
+                  onPressed: isLoading ? null : loadData,
+                  tooltip: 'Refresh Data',
+                  style: IconButton.styleFrom(
+                    foregroundColor: const Color(0xFF667EEA),
+                  ),
+                ),
               ),
             );
           },
@@ -356,9 +415,26 @@ class _AdminDashboardState extends State<AdminDashboard>
               },
             ),
             Expanded(
-              child: filteredIssues.isEmpty
-                  ? _buildEmptyState()
-                  : _buildIssuesList(),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: filteredIssues.isEmpty
+                        ? _buildEmptyState()
+                        : _buildIssuesList(),
+                  ),
+                  SingleChildScrollView(
+                    child: StatsOverview(
+                      issues: issues,
+                      selectedStatus: selectedStatus,
+                      selectedCategory: selectedCategory,
+                      showCriticalOnly: showCriticalOnly,
+                      onStatusFilterChanged: _handleStatusFilter,
+                      onShowAll: _handleShowAll,
+                      onShowCritical: _handleShowCritical,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         );
@@ -367,10 +443,101 @@ class _AdminDashboardState extends State<AdminDashboard>
   }
 
   Widget _buildEmptyState() {
+    String emptyMessage = 'No issues found';
+    String emptySubMessage = 'Try adjusting your filters to see more results';
+    IconData emptyIcon = Icons.inbox_rounded;
+    Color emptyColor = Colors.grey[400]!;
+
+    if (showCriticalOnly) {
+      emptyMessage = 'No critical issues! 🎉';
+      emptySubMessage = 'Excellent! All issues are under control';
+      emptyIcon = Icons.celebration_rounded;
+      emptyColor = const Color(0xFF56AB2F);
+    } else if (selectedStatus.isNotEmpty) {
+      emptyMessage = 'No ${selectedStatus} issues found';
+      emptySubMessage = 'Try selecting a different status or clear filters';
+    }
+
     return Center(
-      child: Text(
-        'No issues found!',
-        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  emptyColor.withValues(alpha: 0.1),
+                  emptyColor.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(color: emptyColor.withValues(alpha: 0.2), width: 2),
+            ),
+            child: Icon(emptyIcon, size: 80, color: emptyColor),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            emptyMessage,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: emptyColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            emptySubMessage,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (selectedStatus.isNotEmpty ||
+              selectedCategory.isNotEmpty ||
+              showCriticalOnly) ...[
+            const SizedBox(height: 24),
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF667EEA).withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: _handleShowAll,
+                icon: const Icon(Icons.clear_all_rounded, color: Colors.white),
+                label: const Text(
+                  'Clear All Filters',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
