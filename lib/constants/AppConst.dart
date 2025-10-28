@@ -1,3 +1,3 @@
 class Appconst {
-  String get serverUrl => "https://18b09fd8efce.ngrok-free.app";
+  String get serverUrl => "https://smseva-backend.onrender.com";
 }
