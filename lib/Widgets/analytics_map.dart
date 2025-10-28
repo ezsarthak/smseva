@@ -42,7 +42,7 @@ class IssueMapCard extends StatelessWidget {
             child: FlutterMap(
               mapController: mapController,
               options: MapOptions(
-                initialCenter: LatLng(23.2599, 77.4126), // Bhopal, India
+                initialCenter: LatLng(18.9582,72.8321), // Bhopal, India
                 initialZoom: 11.0,
               ),
               children: [
@@ -112,9 +112,10 @@ class IssueMapCard extends StatelessWidget {
                   Text(subtitle, style: const TextStyle(fontSize: 14, color: Color(0xFF64748B))),
                 ],
               ),
-              Expanded(child: child),
+              
             ],
           ),
+          child,
         ],
       ),
     );

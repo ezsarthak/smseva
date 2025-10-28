@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../Model/Issues.dart';
-import '../View/analytics_screen.dart' hide Issue;
 
 
 class StatsOverview extends StatelessWidget {
@@ -32,6 +31,9 @@ class StatsOverview extends StatelessWidget {
     final inProgressIssues = issues
         .where((i) => i.status == 'in_progress')
         .length;
+    final awaitingConfirmationIssues = issues
+        .where((i) => i.status == 'admin_completed')
+        .length;
     final completedIssues = issues.where((i) => i.status == 'completed').length;
     final criticalIssues = issues.where((i) => i.issueCount >= 10).length;
 
@@ -39,7 +41,7 @@ class StatsOverview extends StatelessWidget {
       StatData(
         'Total Issues',
         issues.length.toString(),
-        const Color(0xFF667EEA),
+        const Color(0xFF1E3A8A),
         Icons.dashboard_rounded,
         onTap: onShowAll,
         isActive:
@@ -51,7 +53,7 @@ class StatsOverview extends StatelessWidget {
       StatData(
         'New Issues',
         newIssues.toString(),
-        const Color(0xFFFF6B6B),
+        const Color(0xFFDC2626),
         Icons.fiber_new_rounded,
         onTap: () => onStatusFilterChanged('new'),
         isActive: selectedStatus == 'new',
@@ -60,16 +62,25 @@ class StatsOverview extends StatelessWidget {
       StatData(
         'In Progress',
         inProgressIssues.toString(),
-        const Color(0xFF4ECDC4),
+        const Color(0xFF2563EB),
         Icons.work_outline_rounded,
         onTap: () => onStatusFilterChanged('in_progress'),
         isActive: selectedStatus == 'in_progress',
         subtitle: 'Being resolved',
       ),
       StatData(
+        'Awaiting Confirmation',
+        awaitingConfirmationIssues.toString(),
+        const Color(0xFF7C3AED),
+        Icons.pending_outlined,
+        onTap: () => onStatusFilterChanged('admin_completed'),
+        isActive: selectedStatus == 'admin_completed',
+        subtitle: 'User confirmation pending',
+      ),
+      StatData(
         'Completed',
         completedIssues.toString(),
-        const Color(0xFF56AB2F),
+        const Color(0xFF059669),
         Icons.check_circle_outline_rounded,
         onTap: () => onStatusFilterChanged('completed'),
         isActive: selectedStatus == 'completed',
@@ -78,25 +89,11 @@ class StatsOverview extends StatelessWidget {
       StatData(
         'Critical',
         criticalIssues.toString(),
-        const Color(0xFFFF416C),
+        const Color(0xFFB91C1C),
         Icons.warning_rounded,
         onTap: onShowCritical,
         isActive: showCriticalOnly,
         subtitle: '10+ reports',
-      ),
-      StatData(
-        'Analytics Overview',
-        '',
-        const Color(0xFF4C6EF5),
-        Icons.bar_chart_rounded,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AnalyticsScreen()),
-          );
-        },
-        isActive: false,
-        subtitle: 'View detailed insights',
       ),
     ];
 
@@ -193,7 +190,7 @@ class _StatCardState extends State<StatCard>
               },
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.3,
-                height: 110,
+                height: 100,
                 decoration: BoxDecoration(
                   gradient: widget.stat.isActive
                       ? LinearGradient(
@@ -229,7 +226,7 @@ class _StatCardState extends State<StatCard>
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
                       // Icon section
@@ -259,7 +256,7 @@ class _StatCardState extends State<StatCard>
                             Text(
                               widget.stat.title,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w600,
                                 color: widget.stat.isActive
                                     ? Colors.white.withOpacity(0.9)
@@ -272,7 +269,7 @@ class _StatCardState extends State<StatCard>
                             Text(
                               widget.stat.subtitle,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w500,
                                 color: widget.stat.isActive
                                     ? Colors.white.withOpacity(0.7)
@@ -292,7 +289,7 @@ class _StatCardState extends State<StatCard>
                           Text(
                             widget.stat.value,
                             style: TextStyle(
-                              fontSize: 32,
+                              fontSize: 30,
                               fontWeight: FontWeight.w700,
                               color: widget.stat.isActive
                                   ? Colors.white
@@ -318,7 +315,7 @@ class _StatCardState extends State<StatCard>
                                   color: widget.stat.isActive
                                       ? Colors.white
                                       : widget.stat.color,
-                                  fontSize: 10,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

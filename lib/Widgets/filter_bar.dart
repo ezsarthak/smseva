@@ -27,14 +27,14 @@ class FilterBar extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xffF0E9FF),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Color(0xff8B5AFC)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -95,6 +95,7 @@ class FilterBar extends StatelessWidget {
         DropdownMenuItem(value: '', child: Text('All Status')),
         DropdownMenuItem(value: 'new', child: Text('New')),
         DropdownMenuItem(value: 'in_progress', child: Text('In Progress')),
+        DropdownMenuItem(value: 'admin_completed', child: Text('Awaiting Confirmation')),
         DropdownMenuItem(value: 'completed', child: Text('Completed')),
       ],
       onChanged: (value) => onStatusChanged(value ?? ''),
@@ -125,25 +126,25 @@ class FilterBar extends StatelessWidget {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          fontWeight: FontWeight.w700,
-          color: Color(0xff4C00FF),
+        labelStyle: const TextStyle(
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF1E3A8A),
         ),
-        prefixIcon: Icon(icon, size: 20),
+        prefixIcon: Icon(icon, size: 20, color: const Color(0xFF475569)),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xffCBB4FF)),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xff8B5AFC)),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFF1E3A8A), width: 2),
         ),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: const Color(0xFFF8FAFC),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 12,
@@ -153,7 +154,7 @@ class FilterBar extends StatelessWidget {
       items: items,
       onChanged: onChanged,
       dropdownColor: Colors.white,
-      style: const TextStyle(fontSize: 14, color: Color(0xFF374151)),
+      style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A), fontWeight: FontWeight.w500),
     );
   }
 }

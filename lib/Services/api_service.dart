@@ -1,13 +1,14 @@
   import 'dart:convert';
   import 'package:firebase_auth/firebase_auth.dart';
   import 'package:http/http.dart' as http;
+import 'package:suvidha_admin/constants/AppConst.dart';
 
 import '../Model/Issues.dart';
 import '../Model/Worker.dart';
 import '../Model/assignments.dart';
 
   class ApiService {
-    static const String baseUrl = 'https://suvidha-backend-gdf7.onrender.com';
+    static final String baseUrl = Appconst().serverUrl;
 
     // ---------------- Issues ----------------
     static Future<List<Issue>> getIssues({String? category, int? limit}) async {
@@ -71,27 +72,22 @@ import '../Model/assignments.dart';
         ) async {
       try {
         final User? currentUser = FirebaseAuth.instance.currentUser;
-        if (newStatus == "completed") {
-          final response = await http.post(
-            Uri.parse('$baseUrl/issues/$ticketId/complete'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'completion_type': 'admin',
-              'email': currentUser?.email ?? "admin@g.com",
-            }),
-          );
-          return response.statusCode == 200;
-        } else {
-          final response = await http.put(
-            Uri.parse('$baseUrl/issues/$ticketId/status'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'status': newStatus,
-              'email': currentUser?.email ?? "admin@g.com",
-            }),
-          );
-          return response.statusCode == 200;
-        }
+
+        // Use PUT /issues/{ticket_id}/status for all status updates
+        // The backend now handles admin_completed status
+        final response = await http.put(
+          Uri.parse('$baseUrl/issues/$ticketId/status'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'status': newStatus,
+            'email': currentUser?.email ?? "admin@g.com",
+          }),
+        );
+
+        print('Status update response: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        return response.statusCode == 200;
       } catch (e) {
         print('Error updating issue status: $e');
         return false;

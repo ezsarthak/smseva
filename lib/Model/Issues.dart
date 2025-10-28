@@ -21,6 +21,8 @@ class Issue {
   final String? user_completed_at;
   final String? admin_completed_by;
   final String? user_completed_by;
+  final bool? awaitingUserConfirmation;
+
   Issue({
     required this.ticketId,
     required this.category,
@@ -41,6 +43,7 @@ class Issue {
     required this.user_completed_at,
     required this.admin_completed_by,
     required this.user_completed_by,
+    this.awaitingUserConfirmation,
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) {
@@ -64,10 +67,16 @@ class Issue {
       user_completed_at: json['user_completed_at'] ?? '',
       admin_completed_by: json['admin_completed_by'] ?? '',
       user_completed_by: json['user_completed_by'] ?? '',
+      awaitingUserConfirmation: json['awaiting_user_confirmation'],
     );
   }
 
-  Issue copyWith({String? status}) {
+  Issue copyWith({
+    String? status,
+    bool? awaitingUserConfirmation,
+    String? inProgressAt,
+    String? completedAt,
+  }) {
     return Issue(
       ticketId: ticketId,
       category: category,
@@ -80,14 +89,15 @@ class Issue {
       createdAt: createdAt,
       users: users,
       issueCount: issueCount,
-      inProgressAt: inProgressAt,
-      completedAt: completedAt,
+      inProgressAt: inProgressAt ?? this.inProgressAt,
+      completedAt: completedAt ?? this.completedAt,
       updatedBy: updatedBy,
       originalText: originalText,
       admin_completed_at: admin_completed_at,
       user_completed_at: user_completed_at,
       admin_completed_by: admin_completed_by,
       user_completed_by: user_completed_by,
+      awaitingUserConfirmation: awaitingUserConfirmation ?? this.awaitingUserConfirmation,
     );
   }
 
@@ -118,6 +128,8 @@ class Issue {
         return const Color(0xFFEA580C);
       case 'in_progress':
         return const Color(0xFF2563EB);
+      case 'admin_completed':
+        return const Color(0xFF8B5CF6); // Purple for admin completed
       case 'completed':
         return const Color(0xFF059669);
       default:
@@ -131,6 +143,8 @@ class Issue {
         return const Color(0xFFFFF7ED);
       case 'in_progress':
         return const Color(0xFFEFF6FF);
+      case 'admin_completed':
+        return const Color(0xFFF3F0FF); // Light purple for admin completed
       case 'completed':
         return const Color(0xFFF0FDF4);
       default:
@@ -144,6 +158,8 @@ class Issue {
         return Icons.fiber_new_rounded;
       case 'in_progress':
         return Icons.work_outline_rounded;
+      case 'admin_completed':
+        return Icons.pending_outlined; // Clock icon for awaiting confirmation
       case 'completed':
         return Icons.check_circle_outline_rounded;
       default:

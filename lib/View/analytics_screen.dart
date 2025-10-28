@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:suvidha_admin/constants/AppConst.dart';
 
 import '../Model/Issues.dart';
 import '../Widgets/analytics_csv_export.dart';
@@ -59,8 +60,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     });
 
     try {
+       final String baseUrl = Appconst().serverUrl;
       final response = await http.get(
-        Uri.parse('https://suvidha-backend-gdf7.onrender.com/issues'),
+        Uri.parse('$baseUrl/issues'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -286,8 +288,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             const SizedBox(height: 20),
             ListTile(
               leading: const Icon(Icons.picture_as_pdf_outlined, color: Color(0xFF8B5CF6)),
-              title: const Text('Export PDF Report (Latest 20)'),
-              subtitle: const Text('A visual summary of the most recent issues.'),
+              title: const Text('Export PDF Report (Latest 20 SMS Reports)'),
+              subtitle: const Text('Detailed summary of recent SMS grievances with analysis.'),
               onTap: () {
                 Navigator.pop(context);
                 _exportPdfReport();
@@ -296,8 +298,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             const Divider(height: 20),
             ListTile(
               leading: const Icon(Icons.description_rounded, color: Color(0xFF3B82F6)),
-              title: const Text('Export All Data as CSV'),
-              subtitle: const Text('The complete dataset for spreadsheet analysis.'),
+              title: const Text('Export All SMS Reports as CSV'),
+              subtitle: const Text('Complete SMS grievance data for spreadsheet analysis.'),
               onTap: () {
                 Navigator.pop(context);
                 _exportIssuesToCsv();
@@ -322,7 +324,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         criticalCount: _criticalCount,
       );
       await service.exportPdfReport();
-      if (mounted) _showSnackBar('✅ PDF report exported successfully');
+      if (mounted) _showSnackBar('✅ SMS grievance report exported as PDF successfully');
     } catch (e) {
       if (mounted) _showSnackBar('❌ Failed to export PDF: $e', isError: true);
     } finally {
@@ -343,7 +345,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         criticalCount: _criticalCount,
       );
       await service.exportIssuesToCsv();
-      if (mounted) _showSnackBar('✅ Full data exported successfully to CSV');
+      if (mounted) _showSnackBar('✅ SMS grievance data exported as CSV successfully');
     } catch (e) {
       if (mounted) _showSnackBar('❌ Failed to export CSV: $e', isError: true);
     } finally {
